@@ -93,7 +93,7 @@ jobs:
         with:
           project_id: ${{ env.GCP_PROJECT_ID }}
 
-      - name: DRY RUN: Migrate Secrets
+      - name: Migrate Secrets
         run: |
           declare -a secrets=(
             "ANTHROPIC_API_KEY-prod"
