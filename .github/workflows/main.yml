@@ -32,10 +32,7 @@ jobs:
         with:
           project_id: ${{ env.GCP_PROJECT_ID }}
 
-      - name: Setup GitHub CLI
-        uses: cli/cli-action@v2
-
-      - name: Install jq
+      - name: Install jq (for parsing)
         run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Migrate GitHub Secrets
@@ -51,13 +48,11 @@ jobs:
           for secret_name in $secret_names; do
             echo "Processing: $secret_name"
 
-            # Remove TF_VAR_ prefix if present
             gcp_secret_name="$secret_name"
             if [[ "$secret_name" == TF_VAR_* ]]; then
               gcp_secret_name="${secret_name#TF_VAR_}"
             fi
 
-            # Get secret value using the GitHub CLI (requires authenticated token)
             secret_value=$(gh api \
               repos/${{ github.repository }}/actions/secrets/$secret_name \
               --jq '.encrypted_value' || echo "")
@@ -67,15 +62,10 @@ jobs:
               continue
             fi
 
-            # echo "Creating secret in GCP: $gcp_secret_name"
-            # gcloud secrets create "$gcp_secret_name" \
-            #   --project="${GCP_PROJECT_ID}" \
-            #   --replication-policy="automatic" \
-            #   --labels="migrated-from=github,migration-date=$(date +%F)" 2>/dev/null || true
-
+            echo "Would create secret: $gcp_secret_name"
             # echo "$secret_value" | base64 -d | gcloud secrets versions add "$gcp_secret_name" \
             #   --project="${GCP_PROJECT_ID}" \
             #   --data-file=-
           done
 
-          echo "✅ Migration complete."
+          echo "✅ Migration script completed."
