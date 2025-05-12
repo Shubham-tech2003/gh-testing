@@ -1,6 +1,4 @@
-# .github/workflows/migrate-secrets-to-gcp.yml
-
-name: 'Migrate Secrets: GitHub to GCP'
+name: 'Migrate All Declared Secrets to GCP (TF_VAR_ prefix removed, GCP create commented out)'
 
 on:
   workflow_dispatch:
@@ -37,7 +35,9 @@ jobs:
       - name: Migrate All Declared Secrets (TF_VAR_ prefix removed, GCP create commented out)
         shell: bash
         run: |
-          declare -a secrets=(
+          echo "Starting declared secrets migration (dry run)..."
+
+          secrets=(
             "LINEAR_API_KEY"
             "LINEAR_CLIENT_ID"
             "LINEAR_CLIENT_SECRET"
@@ -61,32 +61,60 @@ jobs:
             "SYNTHESIA_API_KEY_staging"
             "SYNTHESIA_WEBHOOK_SECRET_prod"
             "SYNTHESIA_WEBHOOK_SECRET_staging"
-            "CONSULT_CLERK_SECRET_KEY_prod"
-            "CONSULT_CLERK_SECRET_KEY_staging"
-            "CONSULT_CLERK_PUBLISHABLE_KEY_prod"
-            "CONSULT_CLERK_PUBLISHABLE_KEY_staging"
-            "ANTHROPIC_API_KEY_prod"
-            "ANTHROPIC_API_KEY_staging"
-            "DD_API_KEY_prod"
-            "DD_API_KEY_staging"
+            "TF_VAR_AIRTABLE_KEY_prod"
+            "TF_VAR_AIRTABLE_KEY_staging"
+            "TF_VAR_AWS_ACCESS_KEY_ID_prod"
+            "TF_VAR_AWS_ACCESS_KEY_ID_staging"
+            "TF_VAR_AWS_KEY_prod"
+            "TF_VAR_AWS_KEY_staging"
+            "TF_VAR_AWS_PATHOLOGY_BUCKET_prod"
+            "TF_VAR_AWS_PATHOLOGY_BUCKET_staging"
+            "TF_VAR_AWS_SECRET_prod"
+            "TF_VAR_AWS_SECRET_staging"
+            "TF_VAR_AWS_SECRET_ACCESS_KEY_prod"
+            "TF_VAR_AWS_SECRET_ACCESS_KEY_staging"
+            "TF_VAR_CALENDLY_API_KEY_prod"
+            "TF_VAR_CALENDLY_API_KEY_staging"
+            "TF_VAR_CALENDLY_WEBHOOK_SIGNING_KEY_prod"
+            "TF_VAR_CALENDLY_WEBHOOK_SIGNING_KEY_staging"
+            "TF_VAR_CAL_API_KEY_prod"
+            "TF_VAR_CAL_API_KEY_staging"
+            "TF_VAR_CAL_SECRET_KEY_prod"
+            "TF_VAR_CAL_SECRET_KEY_staging"
+            "TF_VAR_CLAUDE_API_KEY_prod"
+            "TF_VAR_CLAUDE_API_KEY_staging"
+            "TF_VAR_CLERK_WEBHOOK_SECRET_prod"
+            "TF_VAR_CLERK_WEBHOOK_SECRET_staging"
+            "TF_VAR_DATABASE_NAME_prod"
+            "TF_VAR_DATABASE_NAME_staging"
             "TF_VAR_DATABASE_PASSWORD_prod"
             "TF_VAR_DATABASE_PASSWORD_staging"
             "TF_VAR_DATABASE_USER_prod"
             "TF_VAR_DATABASE_USER_staging"
-            "TF_VAR_DATABASE_NAME_prod"
-            "TF_VAR_DATABASE_NAME_staging"
-            "TF_VAR_PMS_CLERK_SECRET_KEY_prod"
-            "TF_VAR_PMS_CLERK_SECRET_KEY_staging"
-            "TF_VAR_PATIENT_CLERK_SECRET_KEY_prod"
-            "TF_VAR_PATIENT_CLERK_SECRET_KEY_staging"
+            "TF_VAR_DEXA_PROCESSOR_ID_prod"
+            "TF_VAR_DEXA_PROCESSOR_ID_staging"
+            "TF_VAR_INNGEST_DEV_prod"
+            "TF_VAR_INNGEST_DEV_staging"
+            "TF_VAR_INNGEST_ENV_prod"
+            "TF_VAR_INNGEST_ENV_staging"
+            "TF_VAR_INNGEST_EVENT_KEY_prod"
+            "TF_VAR_INNGEST_EVENT_KEY_staging"
+            "TF_VAR_INNGEST_SIGNING_KEY_prod"
+            "TF_VAR_INNGEST_SIGNING_KEY_staging"
+            "TF_VAR_JOBS_CLERK_PUBLISHABLE_KEY_prod"
+            "TF_VAR_JOBS_CLERK_PUBLISHABLE_KEY_staging"
             "TF_VAR_JOBS_CLERK_SECRET_KEY_prod"
             "TF_VAR_JOBS_CLERK_SECRET_KEY_staging"
-            "TF_VAR_AWS_ACCESS_KEY_ID_prod"
-            "TF_VAR_AWS_ACCESS_KEY_ID_staging"
-            "TF_VAR_AWS_SECRET_ACCESS_KEY_prod"
-            "TF_VAR_AWS_SECRET_ACCESS_KEY_staging"
             "TF_VAR_OPENAI_API_KEY_prod"
             "TF_VAR_OPENAI_API_KEY_staging"
+            "TF_VAR_PATIENT_CLERK_PUBLISHABLE_KEY_NEW_prod"
+            "TF_VAR_PATIENT_CLERK_PUBLISHABLE_KEY_NEW_staging"
+            "TF_VAR_PATIENT_CLERK_SECRET_KEY_prod"
+            "TF_VAR_PATIENT_CLERK_SECRET_KEY_staging"
+            "TF_VAR_PMS_CLERK_PUBLISHABLE_KEY_prod"
+            "TF_VAR_PMS_CLERK_PUBLISHABLE_KEY_staging"
+            "TF_VAR_PMS_CLERK_SECRET_KEY_prod"
+            "TF_VAR_PMS_CLERK_SECRET_KEY_staging"
             "TF_VAR_STRIPE_PUBLISHABLE_KEY_prod"
             "TF_VAR_STRIPE_PUBLISHABLE_KEY_staging"
             "TF_VAR_STRIPE_SECRET_KEY_prod"
@@ -95,66 +123,32 @@ jobs:
             "TF_VAR_STRIPE_WEBHOOK_SECRET_staging"
             "TF_VAR_STRIPE_WEBHOOK_SECRET_INNGEST_prod"
             "TF_VAR_STRIPE_WEBHOOK_SECRET_INNGEST_staging"
-            "TF_VAR_TYPEFORM_SECRET_prod"
-            "TF_VAR_TYPEFORM_SECRET_staging"
-            "TF_VAR_CALENDLY_API_KEY_prod"
-            "TF_VAR_CALENDLY_API_KEY_staging"
-            "TF_VAR_CAL_API_KEY_prod"
-            "TF_VAR_CAL_API_KEY_staging"
-            "TF_VAR_CAL_SECRET_KEY_prod"
-            "TF_VAR_CAL_SECRET_KEY_staging"
-            "TF_VAR_DEXA_PROCESSOR_ID_prod"
-            "TF_VAR_DEXA_PROCESSOR_ID_staging"
-            "TF_VAR_CLAUDE_API_KEY_prod"
-            "TF_VAR_CLAUDE_API_KEY_staging"
-            "TF_VAR_AWS_PATHOLOGY_BUCKET_prod"
-            "TF_VAR_AWS_PATHOLOGY_BUCKET_staging"
             "TF_VAR_TWILIO_ACCOUNT_SID_prod"
             "TF_VAR_TWILIO_ACCOUNT_SID_staging"
             "TF_VAR_TWILIO_AUTH_TOKEN_prod"
             "TF_VAR_TWILIO_AUTH_TOKEN_staging"
-            "TF_VAR_CALENDLY_WEBHOOK_SIGNING_KEY_prod"
-            "TF_VAR_CALENDLY_WEBHOOK_SIGNING_KEY_staging"
-            "TF_VAR_CLERK_WEBHOOK_SECRET_prod"
-            "TF_VAR_CLERK_WEBHOOK_SECRET_staging"
-            "TF_VAR_AIRTABLE_KEY_prod"
-            "TF_VAR_AIRTABLE_KEY_staging"
-            "TF_VAR_AWS_KEY_prod"
-            "TF_VAR_AWS_KEY_staging"
-            "TF_VAR_AWS_SECRET_prod"
-            "TF_VAR_AWS_SECRET_staging"
-            "TF_VAR_PATIENT_CLERK_PUBLISHABLE_KEY_NEW_prod"
-            "TF_VAR_PATIENT_CLERK_PUBLISHABLE_KEY_NEW_staging"
-            "TF_VAR_JOBS_CLERK_PUBLISHABLE_KEY_prod"
-            "TF_VAR_JOBS_CLERK_PUBLISHABLE_KEY_staging"
-            "TF_VAR_PMS_CLERK_PUBLISHABLE_KEY_prod"
-            "TF_VAR_PMS_CLERK_PUBLISHABLE_KEY_staging"
-            "TF_VAR_INNGEST_SIGNING_KEY_prod"
-            "TF_VAR_INNGEST_SIGNING_KEY_staging"
-            "TF_VAR_INNGEST_EVENT_KEY_prod"
-            "TF_VAR_INNGEST_EVENT_KEY_staging"
-            "TF_VAR_INNGEST_ENV_prod"
-            "TF_VAR_INNGEST_ENV_staging"
-            "TF_VAR_INNGEST_DEV_prod"
-            "TF_VAR_INNGEST_DEV_staging"
+            "TF_VAR_TYPEFORM_SECRET_prod"
+            "TF_VAR_TYPEFORM_SECRET_staging"
             "VELLUM_API_KEY_prod"
             "VELLUM_API_KEY_staging"
-            "COPILOT_CHROME_EXTENSION_PRIVATE_KEY_staging"
           )
 
           for secret in "${secrets[@]}"; do
-            gcp_secret_id="${secret#TF_VAR_}"
+            raw_name="$secret"
+            gcp_secret_name="$secret"
+            if [[ "$secret" == TF_VAR_* ]]; then
+              gcp_secret_name="${secret#TF_VAR_}"
+            fi
 
-            echo "Would migrate $secret -> $gcp_secret_id"
-
-            # echo "${{ secrets[$secret] }}" | gcloud secrets create "$gcp_secret_id" \
+            echo "Would create secret: $gcp_secret_name"
+            # echo "${{ secrets[$raw_name] }}" | gcloud secrets create "$gcp_secret_name" \
             #   --project="${{ env.GCP_PROJECT_ID }}" \
             #   --replication-policy="automatic" \
-            #   --labels="migrated-from=github,migration-date=$(date +%F)" || true
+            #   --labels="migrated-from=github" 2>/dev/null || true
 
-            # echo "${{ secrets[$secret] }}" | gcloud secrets versions add "$gcp_secret_id" \
+            # echo "${{ secrets[$raw_name] }}" | gcloud secrets versions add "$gcp_secret_name" \
             #   --project="${{ env.GCP_PROJECT_ID }}" \
             #   --data-file=-
           done
 
-          echo "✅ Dry run complete. Secrets listed. Uncomment creation lines to write to GCP."
+          echo "✅ Declared secret migration complete (dry run)."
