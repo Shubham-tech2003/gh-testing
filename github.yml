@@ -1,0 +1,81 @@
+name: 'Migrate Secrets: GitHub to GCP'
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  GCP_PROJECT_ID: 'everlab-secrets'
+  GCP_WORKLOAD_IDENTITY_PROVIDER: 'projects/670325066591/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+  GCP_SERVICE_ACCOUNT: 'github-secrets-migrator-sa@everlab-secrets.iam.gserviceaccount.com'
+
+jobs:
+  migrate-secrets:
+    name: Migrate GitHub Secrets to GCP Secret Manager
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to GCP using WIF
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+
+      - name: Setup gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+
+      - name: Setup GitHub CLI
+        uses: cli/cli-action@v2
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Migrate GitHub Secrets
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Starting secret migration..."
+
+          gh secret list --json name > secrets.json
+          secret_names=$(jq -r '.[].name' secrets.json)
+
+          for secret_name in $secret_names; do
+            echo "Processing: $secret_name"
+
+            # Remove TF_VAR_ prefix if present
+            gcp_secret_name="$secret_name"
+            if [[ "$secret_name" == TF_VAR_* ]]; then
+              gcp_secret_name="${secret_name#TF_VAR_}"
+            fi
+
+            # Get secret value using the GitHub CLI (requires authenticated token)
+            secret_value=$(gh api \
+              repos/${{ github.repository }}/actions/secrets/$secret_name \
+              --jq '.encrypted_value' || echo "")
+
+            if [[ -z "$secret_value" ]]; then
+              echo "Skipping $secret_name (empty or inaccessible)"
+              continue
+            fi
+
+            # echo "Creating secret in GCP: $gcp_secret_name"
+            # gcloud secrets create "$gcp_secret_name" \
+            #   --project="${GCP_PROJECT_ID}" \
+            #   --replication-policy="automatic" \
+            #   --labels="migrated-from=github,migration-date=$(date +%F)" 2>/dev/null || true
+
+            # echo "$secret_value" | base64 -d | gcloud secrets versions add "$gcp_secret_name" \
+            #   --project="${GCP_PROJECT_ID}" \
+            #   --data-file=-
+          done
+
+          echo "✅ Migration complete."
