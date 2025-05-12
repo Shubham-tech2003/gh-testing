@@ -1,0 +1,155 @@
+name: 'Migrate Declared Secrets: GitHub to GCP'
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  GCP_PROJECT_ID: 'everlab-secrets'
+  GCP_WORKLOAD_IDENTITY_PROVIDER: 'projects/670325066591/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+  GCP_SERVICE_ACCOUNT: 'github-secrets-migrator-sa@everlab-secrets.iam.gserviceaccount.com'
+
+jobs:
+  migrate-secrets:
+    name: Migrate All Declared Secrets (TF_VAR_ prefix removed, GCP create commented out)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to GCP using WIF
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+
+      - name: Setup gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+
+      - name: Migrate Declared Secrets (dry run)
+        shell: bash
+        run: |
+          echo "Starting declared secrets migration (dry run)..."
+
+          secrets=(
+            "ANTHROPIC_API_KEY-prod"
+            "ANTHROPIC_API_KEY-staging"
+            "CLOUDFLARE_CLIENT_ID-staging"
+            "CLOUDFLARE_CLIENT_SECRET-staging"
+            "CLOUDFLARE_ORG-staging"
+            "CONSULT_CLERK_PUBLISHABLE_KEY-prod"
+            "CONSULT_CLERK_PUBLISHABLE_KEY-staging"
+            "CONSULT_CLERK_SECRET_KEY-prod"
+            "CONSULT_CLERK_SECRET_KEY-staging"
+            "COPILOT_CHROME_EXTENSION_PRIVATE_KEY-staging"
+            "DB_READONLY_USER_PASSWORD-prod"
+            "DB_READONLY_USER_PASSWORD-staging"
+            "DD_API_KEY-prod"
+            "DD_API_KEY-staging"
+            "LINEAR_API_KEY"
+            "LINEAR_CLIENT_ID"
+            "LINEAR_CLIENT_SECRET"
+            "OCR_PROCESSOR_ID-prod"
+            "OCR_PROCESSOR_ID-staging"
+            "PULUMI_APP_CONFIG_PASSPHRASE-prod"
+            "PULUMI_APP_CONFIG_PASSPHRASE-staging"
+            "PULUMI_CICD_GOOGLE_CREDENTIALS-prod"
+            "PULUMI_CICD_GOOGLE_CREDENTIALS-staging"
+            "PULUMI_CLOUDFLARE_API_TOKEN-prod"
+            "PULUMI_CLOUDFLARE_API_TOKEN-staging"
+            "PULUMI_CLOUDFLARE_ORG-staging"
+            "SES_EVENT_INNGEST_WEBHOOK_SECRET-prod"
+            "SES_EVENT_INNGEST_WEBHOOK_SECRET-staging"
+            "SLACK_WEBHOOK_URL"
+            "SYNTHESIA_API_KEY-prod"
+            "SYNTHESIA_API_KEY-staging"
+            "SYNTHESIA_WEBHOOK_SECRET-prod"
+            "SYNTHESIA_WEBHOOK_SECRET-staging"
+            "TF_VAR_AIRTABLE_KEY-prod"
+            "TF_VAR_AIRTABLE_KEY-staging"
+            "TF_VAR_AWS_ACCESS_KEY_ID-prod"
+            "TF_VAR_AWS_ACCESS_KEY_ID-staging"
+            "TF_VAR_AWS_KEY-prod"
+            "TF_VAR_AWS_KEY-staging"
+            "TF_VAR_AWS_PATHOLOGY_BUCKET-prod"
+            "TF_VAR_AWS_PATHOLOGY_BUCKET-staging"
+            "TF_VAR_AWS_SECRET-prod"
+            "TF_VAR_AWS_SECRET-staging"
+            "TF_VAR_AWS_SECRET_ACCESS_KEY-prod"
+            "TF_VAR_AWS_SECRET_ACCESS_KEY-staging"
+            "TF_VAR_CALENDLY_API_KEY-prod"
+            "TF_VAR_CALENDLY_API_KEY-staging"
+            "TF_VAR_CALENDLY_WEBHOOK_SIGNING_KEY-prod"
+            "TF_VAR_CALENDLY_WEBHOOK_SIGNING_KEY-staging"
+            "TF_VAR_CAL_API_KEY-prod"
+            "TF_VAR_CAL_API_KEY-staging"
+            "TF_VAR_CAL_SECRET_KEY-prod"
+            "TF_VAR_CAL_SECRET_KEY-staging"
+            "TF_VAR_CLAUDE_API_KEY-prod"
+            "TF_VAR_CLAUDE_API_KEY-staging"
+            "TF_VAR_CLERK_WEBHOOK_SECRET-prod"
+            "TF_VAR_CLERK_WEBHOOK_SECRET-staging"
+            "TF_VAR_DATABASE_NAME-prod"
+            "TF_VAR_DATABASE_NAME-staging"
+            "TF_VAR_DATABASE_PASSWORD-prod"
+            "TF_VAR_DATABASE_PASSWORD-staging"
+            "TF_VAR_DATABASE_USER-prod"
+            "TF_VAR_DATABASE_USER-staging"
+            "TF_VAR_DEXA_PROCESSOR_ID-prod"
+            "TF_VAR_DEXA_PROCESSOR_ID-staging"
+            "TF_VAR_INNGEST_DEV-prod"
+            "TF_VAR_INNGEST_DEV-staging"
+            "TF_VAR_INNGEST_ENV-prod"
+            "TF_VAR_INNGEST_ENV-staging"
+            "TF_VAR_INNGEST_EVENT_KEY-prod"
+            "TF_VAR_INNGEST_EVENT_KEY-staging"
+            "TF_VAR_INNGEST_SIGNING_KEY-prod"
+            "TF_VAR_INNGEST_SIGNING_KEY-staging"
+            "TF_VAR_JOBS_CLERK_PUBLISHABLE_KEY-prod"
+            "TF_VAR_JOBS_CLERK_PUBLISHABLE_KEY-staging"
+            "TF_VAR_JOBS_CLERK_SECRET_KEY-prod"
+            "TF_VAR_JOBS_CLERK_SECRET_KEY-staging"
+            "TF_VAR_OPENAI_API_KEY-prod"
+            "TF_VAR_OPENAI_API_KEY-staging"
+            "TF_VAR_PATIENT_CLERK_PUBLISHABLE_KEY_NEW-prod"
+            "TF_VAR_PATIENT_CLERK_PUBLISHABLE_KEY_NEW-staging"
+            "TF_VAR_PATIENT_CLERK_SECRET_KEY-prod"
+            "TF_VAR_PATIENT_CLERK_SECRET_KEY-staging"
+            "TF_VAR_PMS_CLERK_PUBLISHABLE_KEY-prod"
+            "TF_VAR_PMS_CLERK_PUBLISHABLE_KEY-staging"
+            "TF_VAR_PMS_CLERK_SECRET_KEY-prod"
+            "TF_VAR_PMS_CLERK_SECRET_KEY-staging"
+            "TF_VAR_STRIPE_PUBLISHABLE_KEY-prod"
+            "TF_VAR_STRIPE_PUBLISHABLE_KEY-staging"
+            "TF_VAR_STRIPE_SECRET_KEY-prod"
+            "TF_VAR_STRIPE_SECRET_KEY-staging"
+            "TF_VAR_STRIPE_WEBHOOK_SECRET-prod"
+            "TF_VAR_STRIPE_WEBHOOK_SECRET-staging"
+            "TF_VAR_STRIPE_WEBHOOK_SECRET_INNGEST-prod"
+            "TF_VAR_STRIPE_WEBHOOK_SECRET_INNGEST-staging"
+            "TF_VAR_TWILIO_ACCOUNT_SID-prod"
+            "TF_VAR_TWILIO_ACCOUNT_SID-staging"
+            "TF_VAR_TWILIO_AUTH_TOKEN-prod"
+            "TF_VAR_TWILIO_AUTH_TOKEN-staging"
+            "TF_VAR_TYPEFORM_SECRET-prod"
+            "TF_VAR_TYPEFORM_SECRET-staging"
+            "VELLUM_API_KEY-prod"
+            "VELLUM_API_KEY-staging"
+          )
+
+          for raw_name in "${secrets[@]}"; do
+            clean_name="${raw_name#TF_VAR_}"
+            echo "Would migrate: $raw_name to GCP secret: $clean_name"
+            # echo "${{ secrets.${raw_name} }}" | gcloud secrets create "$clean_name" \
+            #   --project="${{ env.GCP_PROJECT_ID }}" \
+            #   --replication-policy="automatic" \
+            #   --data-file=- || echo "Skipping $clean_name (exists or error)"
+          done
+
+          echo "✅ Dry run completed."
