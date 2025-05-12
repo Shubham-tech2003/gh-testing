@@ -1,4 +1,4 @@
-name: 'Migrate All Declared Secrets (TF_VAR_ prefix removed, GCP create commented out)'
+name: 'Migrate Secrets: GitHub to GCP'
 
 on:
   workflow_dispatch:
@@ -17,6 +17,67 @@ jobs:
     name: Migrate GitHub Secrets to GCP Secret Manager
     runs-on: ubuntu-latest
 
+    env:
+      LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+      LINEAR_CLIENT_ID: ${{ secrets.LINEAR_CLIENT_ID }}
+      LINEAR_CLIENT_SECRET: ${{ secrets.LINEAR_CLIENT_SECRET }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      TF_VAR_DATABASE_PASSWORD_STAGING: ${{ secrets.TF_VAR_DATABASE_PASSWORD_STAGING }}
+      TF_VAR_DATABASE_PASSWORD_PROD: ${{ secrets.TF_VAR_DATABASE_PASSWORD_PROD }}
+      TF_VAR_DATABASE_USER_STAGING: ${{ secrets.TF_VAR_DATABASE_USER_STAGING }}
+      TF_VAR_DATABASE_USER_PROD: ${{ secrets.TF_VAR_DATABASE_USER_PROD }}
+      TF_VAR_DATABASE_NAME_STAGING: ${{ secrets.TF_VAR_DATABASE_NAME_STAGING }}
+      TF_VAR_DATABASE_NAME_PROD: ${{ secrets.TF_VAR_DATABASE_NAME_PROD }}
+      DB_READONLY_USER_PASSWORD_STAGING: ${{ secrets.DB_READONLY_USER_PASSWORD_STAGING }}
+      DB_READONLY_USER_PASSWORD_PROD: ${{ secrets.DB_READONLY_USER_PASSWORD_PROD }}
+      TF_VAR_PMS_CLERK_SECRET_KEY: ${{ secrets.TF_VAR_PMS_CLERK_SECRET_KEY }}
+      TF_VAR_PATIENT_CLERK_SECRET_KEY: ${{ secrets.TF_VAR_PATIENT_CLERK_SECRET_KEY }}
+      TF_VAR_JOBS_CLERK_SECRET_KEY: ${{ secrets.TF_VAR_JOBS_CLERK_SECRET_KEY }}
+      TF_VAR_AWS_ACCESS_KEY_ID: ${{ secrets.TF_VAR_AWS_ACCESS_KEY_ID }}
+      TF_VAR_AWS_SECRET_ACCESS_KEY: ${{ secrets.TF_VAR_AWS_SECRET_ACCESS_KEY }}
+      TF_VAR_OPENAI_API_KEY: ${{ secrets.TF_VAR_OPENAI_API_KEY }}
+      TF_VAR_STRIPE_PUBLISHABLE_KEY: ${{ secrets.TF_VAR_STRIPE_PUBLISHABLE_KEY }}
+      TF_VAR_STRIPE_SECRET_KEY: ${{ secrets.TF_VAR_STRIPE_SECRET_KEY }}
+      TF_VAR_STRIPE_WEBHOOK_SECRET: ${{ secrets.TF_VAR_STRIPE_WEBHOOK_SECRET }}
+      TF_VAR_STRIPE_WEBHOOK_SECRET_INNGEST: ${{ secrets.TF_VAR_STRIPE_WEBHOOK_SECRET_INNGEST }}
+      TF_VAR_TYPEFORM_SECRET: ${{ secrets.TF_VAR_TYPEFORM_SECRET }}
+      TF_VAR_CALENDLY_API_KEY: ${{ secrets.TF_VAR_CALENDLY_API_KEY }}
+      TF_VAR_CAL_API_KEY: ${{ secrets.TF_VAR_CAL_API_KEY }}
+      TF_VAR_CAL_SECRET_KEY: ${{ secrets.TF_VAR_CAL_SECRET_KEY }}
+      TF_VAR_DEXA_PROCESSOR_ID: ${{ secrets.TF_VAR_DEXA_PROCESSOR_ID }}
+      OCR_PROCESSOR_ID: ${{ secrets.OCR_PROCESSOR_ID }}
+      TF_VAR_CLAUDE_API_KEY: ${{ secrets.TF_VAR_CLAUDE_API_KEY }}
+      TF_VAR_AWS_PATHOLOGY_BUCKET: ${{ secrets.TF_VAR_AWS_PATHOLOGY_BUCKET }}
+      TF_VAR_TWILIO_ACCOUNT_SID: ${{ secrets.TF_VAR_TWILIO_ACCOUNT_SID }}
+      TF_VAR_TWILIO_AUTH_TOKEN: ${{ secrets.TF_VAR_TWILIO_AUTH_TOKEN }}
+      TF_VAR_CALENDLY_WEBHOOK_SIGNING_KEY: ${{ secrets.TF_VAR_CALENDLY_WEBHOOK_SIGNING_KEY }}
+      TF_VAR_CLERK_WEBHOOK_SECRET: ${{ secrets.TF_VAR_CLERK_WEBHOOK_SECRET }}
+      TF_VAR_AIRTABLE_KEY: ${{ secrets.TF_VAR_AIRTABLE_KEY }}
+      TF_VAR_AWS_KEY: ${{ secrets.TF_VAR_AWS_KEY }}
+      TF_VAR_AWS_SECRET: ${{ secrets.TF_VAR_AWS_SECRET }}
+      TF_VAR_PATIENT_CLERK_PUBLISHABLE_KEY_NEW: ${{ secrets.TF_VAR_PATIENT_CLERK_PUBLISHABLE_KEY_NEW }}
+      TF_VAR_JOBS_CLERK_PUBLISHABLE_KEY: ${{ secrets.TF_VAR_JOBS_CLERK_PUBLISHABLE_KEY }}
+      TF_VAR_PMS_CLERK_PUBLISHABLE_KEY: ${{ secrets.TF_VAR_PMS_CLERK_PUBLISHABLE_KEY }}
+      TF_VAR_INNGEST_SIGNING_KEY: ${{ secrets.TF_VAR_INNGEST_SIGNING_KEY }}
+      TF_VAR_INNGEST_EVENT_KEY: ${{ secrets.TF_VAR_INNGEST_EVENT_KEY }}
+      TF_VAR_INNGEST_ENV: ${{ secrets.TF_VAR_INNGEST_ENV }}
+      TF_VAR_INNGEST_DEV: ${{ secrets.TF_VAR_INNGEST_DEV }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      VELLUM_API_KEY: ${{ secrets.VELLUM_API_KEY }}
+      SYNTHESIA_API_KEY: ${{ secrets.SYNTHESIA_API_KEY }}
+      SYNTHESIA_WEBHOOK_SECRET: ${{ secrets.SYNTHESIA_WEBHOOK_SECRET }}
+      DD_API_KEY: ${{ secrets.DD_API_KEY }}
+      CONSULT_CLERK_SECRET_KEY: ${{ secrets.CONSULT_CLERK_SECRET_KEY }}
+      CONSULT_CLERK_PUBLISHABLE_KEY: ${{ secrets.CONSULT_CLERK_PUBLISHABLE_KEY }}
+      SES_EVENT_INNGEST_WEBHOOK_SECRET: ${{ secrets.SES_EVENT_INNGEST_WEBHOOK_SECRET }}
+      PULUMI_CICD_GOOGLE_CREDENTIALS: ${{ secrets.PULUMI_CICD_GOOGLE_CREDENTIALS }}
+      PULUMI_APP_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_APP_CONFIG_PASSPHRASE }}
+      PULUMI_CLOUDFLARE_API_TOKEN: ${{ secrets.PULUMI_CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ORG: ${{ secrets.CLOUDFLARE_ORG }}
+      CLOUDFLARE_CLIENT_ID: ${{ secrets.CLOUDFLARE_CLIENT_ID }}
+      CLOUDFLARE_CLIENT_SECRET: ${{ secrets.CLOUDFLARE_CLIENT_SECRET }}
+      COPILOT_CHROME_EXTENSION_PRIVATE_KEY: ${{ secrets.COPILOT_CHROME_EXTENSION_PRIVATE_KEY }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,132 +88,94 @@ jobs:
           workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
 
-      - name: Setup gcloud CLI
+      - name: Set up gcloud CLI
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ env.GCP_PROJECT_ID }}
 
-      - name: Migrate Declared Secrets (dry run)
-        shell: bash
+      - name: Migrate Secrets
         run: |
-          echo "Starting declared secrets migration (dry run)..."
-
-          secrets=(
-            "ANTHROPIC_API_KEY-prod"
-            "ANTHROPIC_API_KEY-staging"
-            "CLOUDFLARE_CLIENT_ID-staging"
-            "CLOUDFLARE_CLIENT_SECRET-staging"
-            "CLOUDFLARE_ORG-staging"
-            "CONSULT_CLERK_PUBLISHABLE_KEY-prod"
-            "CONSULT_CLERK_PUBLISHABLE_KEY-staging"
-            "CONSULT_CLERK_SECRET_KEY-prod"
-            "CONSULT_CLERK_SECRET_KEY-staging"
-            "COPILOT_CHROME_EXTENSION_PRIVATE_KEY-staging"
-            "DB_READONLY_USER_PASSWORD-prod"
-            "DB_READONLY_USER_PASSWORD-staging"
-            "DD_API_KEY-prod"
-            "DD_API_KEY-staging"
-            "LINEAR_API_KEY"
-            "LINEAR_CLIENT_ID"
-            "LINEAR_CLIENT_SECRET"
-            "OCR_PROCESSOR_ID-prod"
-            "OCR_PROCESSOR_ID-staging"
-            "PULUMI_APP_CONFIG_PASSPHRASE-prod"
-            "PULUMI_APP_CONFIG_PASSPHRASE-staging"
-            "PULUMI_CICD_GOOGLE_CREDENTIALS-prod"
-            "PULUMI_CICD_GOOGLE_CREDENTIALS-staging"
-            "PULUMI_CLOUDFLARE_API_TOKEN-prod"
-            "PULUMI_CLOUDFLARE_API_TOKEN-staging"
-            "SES_EVENT_INNGEST_WEBHOOK_SECRET-prod"
-            "SES_EVENT_INNGEST_WEBHOOK_SECRET-staging"
-            "SLACK_WEBHOOK_URL"
-            "SYNTHESIA_API_KEY-prod"
-            "SYNTHESIA_API_KEY-staging"
-            "SYNTHESIA_WEBHOOK_SECRET-prod"
-            "SYNTHESIA_WEBHOOK_SECRET-staging"
-            "TF_VAR_AIRTABLE_KEY-prod"
-            "TF_VAR_AIRTABLE_KEY-staging"
-            "TF_VAR_AWS_ACCESS_KEY_ID-prod"
-            "TF_VAR_AWS_ACCESS_KEY_ID-staging"
-            "TF_VAR_AWS_KEY-prod"
-            "TF_VAR_AWS_KEY-staging"
-            "TF_VAR_AWS_PATHOLOGY_BUCKET-prod"
-            "TF_VAR_AWS_PATHOLOGY_BUCKET-staging"
-            "TF_VAR_AWS_SECRET-prod"
-            "TF_VAR_AWS_SECRET-staging"
-            "TF_VAR_AWS_SECRET_ACCESS_KEY-prod"
-            "TF_VAR_AWS_SECRET_ACCESS_KEY-staging"
-            "TF_VAR_CALENDLY_API_KEY-prod"
-            "TF_VAR_CALENDLY_API_KEY-staging"
-            "TF_VAR_CALENDLY_WEBHOOK_SIGNING_KEY-prod"
-            "TF_VAR_CALENDLY_WEBHOOK_SIGNING_KEY-staging"
-            "TF_VAR_CAL_API_KEY-prod"
-            "TF_VAR_CAL_API_KEY-staging"
-            "TF_VAR_CAL_SECRET_KEY-prod"
-            "TF_VAR_CAL_SECRET_KEY-staging"
-            "TF_VAR_CLAUDE_API_KEY-prod"
-            "TF_VAR_CLAUDE_API_KEY-staging"
-            "TF_VAR_CLERK_WEBHOOK_SECRET-prod"
-            "TF_VAR_CLERK_WEBHOOK_SECRET-staging"
-            "TF_VAR_DATABASE_NAME-prod"
-            "TF_VAR_DATABASE_NAME-staging"
-            "TF_VAR_DATABASE_PASSWORD-prod"
-            "TF_VAR_DATABASE_PASSWORD-staging"
-            "TF_VAR_DATABASE_USER-prod"
-            "TF_VAR_DATABASE_USER-staging"
-            "TF_VAR_DEXA_PROCESSOR_ID-prod"
-            "TF_VAR_DEXA_PROCESSOR_ID-staging"
-            "TF_VAR_INNGEST_DEV-prod"
-            "TF_VAR_INNGEST_DEV-staging"
-            "TF_VAR_INNGEST_ENV-prod"
-            "TF_VAR_INNGEST_ENV-staging"
-            "TF_VAR_INNGEST_EVENT_KEY-prod"
-            "TF_VAR_INNGEST_EVENT_KEY-staging"
-            "TF_VAR_INNGEST_SIGNING_KEY-prod"
-            "TF_VAR_INNGEST_SIGNING_KEY-staging"
-            "TF_VAR_JOBS_CLERK_PUBLISHABLE_KEY-prod"
-            "TF_VAR_JOBS_CLERK_PUBLISHABLE_KEY-staging"
-            "TF_VAR_JOBS_CLERK_SECRET_KEY-prod"
-            "TF_VAR_JOBS_CLERK_SECRET_KEY-staging"
-            "TF_VAR_OPENAI_API_KEY-prod"
-            "TF_VAR_OPENAI_API_KEY-staging"
-            "TF_VAR_PATIENT_CLERK_PUBLISHABLE_KEY_NEW-prod"
-            "TF_VAR_PATIENT_CLERK_PUBLISHABLE_KEY_NEW-staging"
-            "TF_VAR_PATIENT_CLERK_SECRET_KEY-prod"
-            "TF_VAR_PATIENT_CLERK_SECRET_KEY-staging"
-            "TF_VAR_PMS_CLERK_PUBLISHABLE_KEY-prod"
-            "TF_VAR_PMS_CLERK_PUBLISHABLE_KEY-staging"
-            "TF_VAR_PMS_CLERK_SECRET_KEY-prod"
-            "TF_VAR_PMS_CLERK_SECRET_KEY-staging"
-            "TF_VAR_STRIPE_PUBLISHABLE_KEY-prod"
-            "TF_VAR_STRIPE_PUBLISHABLE_KEY-staging"
-            "TF_VAR_STRIPE_SECRET_KEY-prod"
-            "TF_VAR_STRIPE_SECRET_KEY-staging"
-            "TF_VAR_STRIPE_WEBHOOK_SECRET-prod"
-            "TF_VAR_STRIPE_WEBHOOK_SECRET-staging"
-            "TF_VAR_STRIPE_WEBHOOK_SECRET_INNGEST-prod"
-            "TF_VAR_STRIPE_WEBHOOK_SECRET_INNGEST-staging"
-            "TF_VAR_TWILIO_ACCOUNT_SID-prod"
-            "TF_VAR_TWILIO_ACCOUNT_SID-staging"
-            "TF_VAR_TWILIO_AUTH_TOKEN-prod"
-            "TF_VAR_TWILIO_AUTH_TOKEN-staging"
-            "TF_VAR_TYPEFORM_SECRET-prod"
-            "TF_VAR_TYPEFORM_SECRET-staging"
-            "VELLUM_API_KEY-prod"
-            "VELLUM_API_KEY-staging"
+          declare -A secret_map=(
+            ["LINEAR_API_KEY"]="linear-api-key"
+            ["LINEAR_CLIENT_ID"]="linear-client-id"
+            ["LINEAR_CLIENT_SECRET"]="linear-client-secret"
+            ["SLACK_WEBHOOK_URL"]="slack-webhook-url"
+            ["TF_VAR_DATABASE_PASSWORD_STAGING"]="database-password-staging"
+            ["TF_VAR_DATABASE_PASSWORD_PROD"]="database-password-prod"
+            ["TF_VAR_DATABASE_USER_STAGING"]="database-user-staging"
+            ["TF_VAR_DATABASE_USER_PROD"]="database-user-prod"
+            ["TF_VAR_DATABASE_NAME_STAGING"]="database-name-staging"
+            ["TF_VAR_DATABASE_NAME_PROD"]="database-name-prod"
+            ["DB_READONLY_USER_PASSWORD_STAGING"]="db-readonly-user-password-staging"
+            ["DB_READONLY_USER_PASSWORD_PROD"]="db-readonly-user-password-prod"
+            ["TF_VAR_PMS_CLERK_SECRET_KEY"]="pms-clerk-secret-key"
+            ["TF_VAR_PATIENT_CLERK_SECRET_KEY"]="patient-clerk-secret-key"
+            ["TF_VAR_JOBS_CLERK_SECRET_KEY"]="jobs-clerk-secret-key"
+            ["TF_VAR_AWS_ACCESS_KEY_ID"]="aws-access-key-id"
+            ["TF_VAR_AWS_SECRET_ACCESS_KEY"]="aws-secret-access-key"
+            ["TF_VAR_OPENAI_API_KEY"]="openai-api-key"
+            ["TF_VAR_STRIPE_PUBLISHABLE_KEY"]="stripe-publishable-key"
+            ["TF_VAR_STRIPE_SECRET_KEY"]="stripe-secret-key"
+            ["TF_VAR_STRIPE_WEBHOOK_SECRET"]="stripe-webhook-secret"
+            ["TF_VAR_STRIPE_WEBHOOK_SECRET_INNGEST"]="stripe-webhook-secret-inngest"
+            ["TF_VAR_TYPEFORM_SECRET"]="typeform-secret"
+            ["TF_VAR_CALENDLY_API_KEY"]="calendly-api-key"
+            ["TF_VAR_CAL_API_KEY"]="cal-api-key"
+            ["TF_VAR_CAL_SECRET_KEY"]="cal-secret-key"
+            ["TF_VAR_DEXA_PROCESSOR_ID"]="dexa-processor-id"
+            ["OCR_PROCESSOR_ID"]="ocr-processor-id"
+            ["TF_VAR_CLAUDE_API_KEY"]="claude-api-key"
+            ["TF_VAR_AWS_PATHOLOGY_BUCKET"]="aws-pathology-bucket"
+            ["TF_VAR_TWILIO_ACCOUNT_SID"]="twilio-account-sid"
+            ["TF_VAR_TWILIO_AUTH_TOKEN"]="twilio-auth-token"
+            ["TF_VAR_CALENDLY_WEBHOOK_SIGNING_KEY"]="calendly-webhook-signing-key"
+            ["TF_VAR_CLERK_WEBHOOK_SECRET"]="clerk-webhook-secret"
+            ["TF_VAR_AIRTABLE_KEY"]="airtable-key"
+            ["TF_VAR_AWS_KEY"]="aws-key"
+            ["TF_VAR_AWS_SECRET"]="aws-secret"
+            ["TF_VAR_PATIENT_CLERK_PUBLISHABLE_KEY_NEW"]="patient-clerk-publishable-key-new"
+            ["TF_VAR_JOBS_CLERK_PUBLISHABLE_KEY"]="jobs-clerk-publishable-key"
+            ["TF_VAR_PMS_CLERK_PUBLISHABLE_KEY"]="pms-clerk-publishable-key"
+            ["TF_VAR_INNGEST_SIGNING_KEY"]="inngest-signing-key"
+            ["TF_VAR_INNGEST_EVENT_KEY"]="inngest-event-key"
+            ["TF_VAR_INNGEST_ENV"]="inngest-env"
+            ["TF_VAR_INNGEST_DEV"]="inngest-dev"
+            ["ANTHROPIC_API_KEY"]="anthropic-api-key"
+            ["VELLUM_API_KEY"]="vellum-api-key"
+            ["SYNTHESIA_API_KEY"]="synthesia-api-key"
+            ["SYNTHESIA_WEBHOOK_SECRET"]="synthesia-webhook-secret"
+            ["DD_API_KEY"]="dd-api-key"
+            ["CONSULT_CLERK_SECRET_KEY"]="consult-clerk-secret-key"
+            ["CONSULT_CLERK_PUBLISHABLE_KEY"]="consult-clerk-publishable-key"
+            ["SES_EVENT_INNGEST_WEBHOOK_SECRET"]="ses-event-inngest-webhook-secret"
+            ["PULUMI_CICD_GOOGLE_CREDENTIALS"]="pulumi-cicd-google-credentials"
+            ["PULUMI_APP_CONFIG_PASSPHRASE"]="pulumi-app-config-passphrase"
+            ["PULUMI_CLOUDFLARE_API_TOKEN"]="pulumi-cloudflare-api-token"
+            ["CLOUDFLARE_ORG"]="cloudflare-org"
+            ["CLOUDFLARE_CLIENT_ID"]="cloudflare-client-id"
+            ["CLOUDFLARE_CLIENT_SECRET"]="cloudflare-client-secret"
+            ["COPILOT_CHROME_EXTENSION_PRIVATE_KEY"]="copilot-chrome-extension-private-key"
           )
 
-          for secret in "${secrets[@]}"; do
-            raw_name="$secret"
-            gcp_name="${raw_name#TF_VAR_}"
+          for env_var in "${!secret_map[@]}"; do
+            gcp_secret="${secret_map[$env_var]}"
+            value="${!env_var}"
 
-            echo "Would create GCP secret: $gcp_name"
-            echo "With GitHub secret: $raw_name"
+            if [[ -z "$value" ]]; then
+              echo "Skipping $gcp_secret (no value set)"
+              continue
+            fi
 
-            # Uncomment below to actually create and push secrets
-            # echo "${{ secrets[$raw_name] }}" | gcloud secrets versions add "$gcp_name" \
-            #   --project="${GCP_PROJECT_ID}" \
-            #   --data-file=-
+            echo "Would migrate: $env_var --> $gcp_secret"
+
+            echo "$value" | gcloud secrets create "$gcp_secret" \
+              --project="${GCP_PROJECT_ID}" \
+              --replication-policy="automatic" \
+              --labels="migrated-from=github,migration-date=$(date +%F)" 2>/dev/null || true
+
+            echo "$value" | gcloud secrets versions add "$gcp_secret" \
+              --project="${GCP_PROJECT_ID}" \
+              --data-file=-
           done
 
-          echo "✅ Dry run complete. GCP secrets were not actually created."
+          echo "✅ Migration completed."
