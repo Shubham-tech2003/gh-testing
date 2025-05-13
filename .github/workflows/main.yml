@@ -136,25 +136,126 @@ jobs:
         with:
           project_id: ${{ env.GCP_PROJECT_ID }}
 
-      - name: Migrate all GitHub secrets to GCP
+      - name: Dry-run Secret Migration (Only defined secrets)
         run: |
-          for key in $(env | cut -d= -f1); do
-            value="${!key}"
-            [[ -z "$value" ]] && continue
+          declare -a secret_names=(
+            "LINEAR_API_KEY"
+            "LINEAR_CLIENT_ID"
+            "LINEAR_CLIENT_SECRET"
+            "SLACK_WEBHOOK_URL"
+            "CLOUDFLARE_ORG_staging"
+            "CLOUDFLARE_CLIENT_ID_staging"
+            "CLOUDFLARE_CLIENT_SECRET_staging"
+            "TF_VAR_PATIENT_CLERK_SECRET_KEY_staging"
+            "TF_VAR_PATIENT_CLERK_SECRET_KEY_prod"
+            "COPILOT_CHROME_EXTENSION_PRIVATE_KEY_prod"
+            "PULUMI_CLOUDFLARE_API_TOKEN_staging"
+            "PULUMI_CLOUDFLARE_API_TOKEN_prod"
+            "PULUMI_APP_CONFIG_PASSPHRASE_staging"
+            "PULUMI_APP_CONFIG_PASSPHRASE_prod"
+            "PULUMI_CICD_GOOGLE_CREDENTIALS_staging"
+            "PULUMI_CICD_GOOGLE_CREDENTIALS_prod"
+            "TF_VAR_DATABASE_PASSWORD_staging"
+            "TF_VAR_DATABASE_PASSWORD_prod"
+            "TF_VAR_DATABASE_USER_staging"
+            "TF_VAR_DATABASE_USER_prod"
+            "TF_VAR_DATABASE_NAME_staging"
+            "TF_VAR_DATABASE_NAME_prod"
+            "DB_READONLY_USER_PASSWORD_staging"
+            "DB_READONLY_USER_PASSWORD_prod"
+            "TF_VAR_PMS_CLERK_SECRET_KEY_staging"
+            "TF_VAR_PMS_CLERK_SECRET_KEY_prod"
+            "TF_VAR_JOBS_CLERK_SECRET_KEY_staging"
+            "TF_VAR_JOBS_CLERK_SECRET_KEY_prod"
+            "TF_VAR_JOBS_CLERK_PUBLISHABLE_KEY_staging"
+            "TF_VAR_JOBS_CLERK_PUBLISHABLE_KEY_prod"
+            "TF_VAR_AWS_ACCESS_KEY_ID_staging"
+            "TF_VAR_AWS_ACCESS_KEY_ID_prod"
+            "TF_VAR_AWS_SECRET_ACCESS_KEY_staging"
+            "TF_VAR_AWS_SECRET_ACCESS_KEY_prod"
+            "TF_VAR_OPENAI_API_KEY_staging"
+            "TF_VAR_OPENAI_API_KEY_prod"
+            "TF_VAR_STRIPE_PUBLISHABLE_KEY_staging"
+            "TF_VAR_STRIPE_PUBLISHABLE_KEY_prod"
+            "TF_VAR_STRIPE_SECRET_KEY_staging"
+            "TF_VAR_STRIPE_SECRET_KEY_prod"
+            "TF_VAR_STRIPE_WEBHOOK_SECRET_staging"
+            "TF_VAR_STRIPE_WEBHOOK_SECRET_prod"
+            "TF_VAR_STRIPE_WEBHOOK_SECRET_INNGEST_staging"
+            "TF_VAR_STRIPE_WEBHOOK_SECRET_INNGEST_prod"
+            "TF_VAR_TYPEFORM_SECRET_staging"
+            "TF_VAR_TYPEFORM_SECRET_prod"
+            "TF_VAR_CALENDLY_API_KEY_staging"
+            "TF_VAR_CALENDLY_API_KEY_prod"
+            "TF_VAR_CAL_API_KEY_staging"
+            "TF_VAR_CAL_API_KEY_prod"
+            "TF_VAR_CAL_SECRET_KEY_staging"
+            "TF_VAR_CAL_SECRET_KEY_prod"
+            "TF_VAR_DEXA_PROCESSOR_ID_staging"
+            "TF_VAR_DEXA_PROCESSOR_ID_prod"
+            "OCR_PROCESSOR_ID_staging"
+            "OCR_PROCESSOR_ID_prod"
+            "TF_VAR_CLAUDE_API_KEY_staging"
+            "TF_VAR_CLAUDE_API_KEY_prod"
+            "TF_VAR_AWS_PATHOLOGY_BUCKET_staging"
+            "TF_VAR_AWS_PATHOLOGY_BUCKET_prod"
+            "TF_VAR_TWILIO_ACCOUNT_SID_staging"
+            "TF_VAR_TWILIO_ACCOUNT_SID_prod"
+            "TF_VAR_TWILIO_AUTH_TOKEN_staging"
+            "TF_VAR_TWILIO_AUTH_TOKEN_prod"
+            "TF_VAR_CALENDLY_WEBHOOK_SIGNING_KEY_staging"
+            "TF_VAR_CALENDLY_WEBHOOK_SIGNING_KEY_prod"
+            "TF_VAR_CLERK_WEBHOOK_SECRET_staging"
+            "TF_VAR_CLERK_WEBHOOK_SECRET_prod"
+            "TF_VAR_AIRTABLE_KEY_staging"
+            "TF_VAR_AIRTABLE_KEY_prod"
+            "TF_VAR_AWS_KEY_staging"
+            "TF_VAR_AWS_KEY_prod"
+            "TF_VAR_AWS_SECRET_staging"
+            "TF_VAR_AWS_SECRET_prod"
+            "TF_VAR_PATIENT_CLERK_PUBLISHABLE_KEY_NEW_staging"
+            "TF_VAR_PATIENT_CLERK_PUBLISHABLE_KEY_NEW_prod"
+            "TF_VAR_PMS_CLERK_PUBLISHABLE_KEY_staging"
+            "TF_VAR_PMS_CLERK_PUBLISHABLE_KEY_prod"
+            "TF_VAR_INNGEST_SIGNING_KEY_staging"
+            "TF_VAR_INNGEST_SIGNING_KEY_prod"
+            "TF_VAR_INNGEST_EVENT_KEY_staging"
+            "TF_VAR_INNGEST_EVENT_KEY_prod"
+            "TF_VAR_INNGEST_ENV_staging"
+            "TF_VAR_INNGEST_ENV_prod"
+            "TF_VAR_INNGEST_DEV_staging"
+            "TF_VAR_INNGEST_DEV_prod"
+            "ANTHROPIC_API_KEY_staging"
+            "ANTHROPIC_API_KEY_prod"
+            "VELLUM_API_KEY_staging"
+            "VELLUM_API_KEY_prod"
+            "SYNTHESIA_API_KEY_staging"
+            "SYNTHESIA_API_KEY_prod"
+            "SYNTHESIA_WEBHOOK_SECRET_staging"
+            "SYNTHESIA_WEBHOOK_SECRET_prod"
+            "CONSULT_CLERK_SECRET_KEY_staging"
+            "CONSULT_CLERK_SECRET_KEY_prod"
+            "CONSULT_CLERK_PUBLISHABLE_KEY_staging"
+            "CONSULT_CLERK_PUBLISHABLE_KEY_prod"
+            "DD_API_KEY_staging"
+            "DD_API_KEY_prod"
+            "SES_EVENT_INNGEST_WEBHOOK_SECRET_staging"
+            "SES_EVENT_INNGEST_WEBHOOK_SECRET_pro"
+          )
 
-            gcp_name="${key}"
-            [[ "$key" == TF_VAR_* ]] && gcp_name="${key#TF_VAR_}"
-            gcp_name=$(echo "$gcp_name" | tr '[:upper:]' '[:lower:]')
+          for secret in "${secret_names[@]}"; do
+            val="${!secret}"
+            [[ -z "$val" ]] && continue
+            clean_name=$(echo "$secret" | sed 's/^TF_VAR_//' | tr '[:upper:]' '[:lower:]')
+            echo "Would create GCP secret: $clean_name (from $secret)"
 
-            echo "Migrating: $key --> $gcp_name"
-            echo "$value" | gcloud secrets create "$gcp_name" \
-              --project="${GCP_PROJECT_ID}" \
-              --replication-policy="automatic" \
-              --labels="migrated-from=github,migration-date=$(date +%F)" 2>/dev/null || true
-
-            echo "$value" | gcloud secrets versions add "$gcp_name" \
-              --project="${GCP_PROJECT_ID}" \
-              --data-file=-
+            # echo "$val" | gcloud secrets create "$clean_name" \
+            #   --project="${GCP_PROJECT_ID}" \
+            #   --replication-policy="automatic" \
+            #   --labels="migrated-from=github,migration-date=$(date +%F)" 2>/dev/null || true
+            # echo "$val" | gcloud secrets versions add "$clean_name" \
+            #   --project="${GCP_PROJECT_ID}" \
+            #   --data-file=-
           done
 
-          echo "✅ All secrets migrated."
+          echo "✅ Dry run complete. No secrets were created."
